@@ -20,6 +20,10 @@ namespace :api, defaults: { format: :json } do
           { display: true, app_name: 'mo-me' }
         when 'bristol-cable'
           { display: false, app_name: 'bristol-cable' }
+        when 'leicester'
+          { display: false, app_name: 'leicester' }
+        when 'findout'
+          { display: false, app_name: 'findout' }
         else
           { display: true, app_name: app_name }
         end
@@ -49,6 +53,9 @@ namespace :api, defaults: { format: :json } do
         get :find_out_catch_up
         get :find_out_speak_out
         get :leicester_channels
+        get :csidnet_channels
+        get :brazilian_museum_channels
+        patch :change_boost_bot_profile
       end
       member do
         get :starter_packs_detail
@@ -93,6 +100,7 @@ namespace :api, defaults: { format: :json } do
         post 'set_visibility'
         get 'fetch_ip_address'
         get 'hashtag_list'
+        get 'post_hashtag_list'
       end
       member do
         patch :manage_additional_information
@@ -108,6 +116,12 @@ namespace :api, defaults: { format: :json } do
     resources :content_types, only: [:index, :create]
 
     resources :joined_communities, only: %i[index create destroy] do
+      collection do
+        post :set_primary
+      end
+    end
+
+    resources :joined_working_groups, only: %i[index create destroy] do
       collection do
         post :set_primary
       end
