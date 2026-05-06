@@ -4,8 +4,8 @@ module Api
   module V1
     class ChannelsController < ApiController
       skip_before_action :verify_key!
-      before_action :check_authorization_header, only: [:channel_detail, :channel_feeds, :newsmast_channels, :my_channel, :mo_me_channels, :patchwork_demo_channels]
-      before_action :set_channel, only: [:channel_detail, :channel_feeds]
+      before_action :check_authorization_header, only: [:channel_detail, :channel_feeds, :newsmast_channels, :my_channel, :mo_me_channels, :patchwork_demo_channels, :toot_channels, :bristol_cable_channels, :find_out_channels]
+      before_action :set_channel, only: [:channel_detail, :channel_feeds, :change_boost_bot_profile]
 
       DEFAULT_MO_ME_CHANNELS = [
         { slug: 'mediarevolution', channel_type: Community.channel_types[:channel] },
@@ -27,6 +27,91 @@ module Api
         { slug: 'RenewedResistance', channel_type: Community.channel_types[:channel]}
       ].freeze
 
+      DEFAULT_TOOT_CHANNELS = [
+        { slug: 'newyddion', channel_type: Community.channel_types[:channel_feed] },
+        { slug: 'walesnews', channel_type: Community.channel_types[:channel_feed] },
+        { slug: 'biodiversity-rewilding', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'books-literature', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'football', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'humour', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'movies', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'music', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'nature-wildlife', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'pets', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'photography', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'sport', channel_type: Community.channel_types[:newsmast] }
+      ].freeze
+
+      DEFAULT_BRISTOL_CABLE_CHANNELS = [
+        { slug: 'bristol', channel_type: Community.channel_types[:channel_feed] },
+        { slug: 'activism-civil-rights', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'climate-change', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'trees', channel_type: Community.channel_types[:channel_feed] },
+        { slug: 'podcasting', channel_type: Community.channel_types[:channel_feed] },
+        { slug: 'greens', channel_type: Community.channel_types[:channel]},
+        { slug: 'fedibookclub', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'NoticiasBrasil', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'RenewedResistance', channel_type: Community.channel_types[:channel]}
+      ].freeze
+
+      DEFAULT_FIND_OUT_CHANNELS = [
+        { slug: 'findoutpodcast', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'getangry', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'notjackryan', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'magareactions', channel_type: Community.channel_types[:channel_feed]},
+      ].freeze
+
+      DEFAULT_FIND_OUT_CATCH_UP = [
+        { slug: 'uselections', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'us-politics', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'breaking-news', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'movies', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'us-sport', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'technology', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'food-drink', channel_type: Community.channel_types[:newsmast]},
+      ].freeze
+
+      DEFAULT_FIND_OUT_SPEAK_OUT = [
+        { slug: 'activism-civil-rights', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'climate-change', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'lgbtq', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'black-voices', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'disabled-voices', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'immigrants-rights', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'indigenous-peoples', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'neurodivergent', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'women-voices', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'workers-rights', channel_type: Community.channel_types[:newsmast]},
+      ].freeze
+
+      DEFAULT_LEICESTER_CHANNELS = [
+        { slug: 'Leicester', channel_type: Community.channel_types[:channel_feed] },
+        { slug: 'activism-civil-rights', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'climate-change', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'trees', channel_type: Community.channel_types[:channel_feed] },
+        { slug: 'podcasting', channel_type: Community.channel_types[:channel_feed] },
+        { slug: 'greens', channel_type: Community.channel_types[:channel]},
+        { slug: 'fedibookclub', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'NoticiasBrasil', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'RenewedResistance', channel_type: Community.channel_types[:channel]}
+      ]
+
+      DEFAULT_CSIDNET_CHANNELS = [
+        { slug: 'hunger-disease-water', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'climate-change', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'biology', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'science', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'academia-research', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'environment', channel_type: Community.channel_types[:newsmast]},
+        { slug: 'biodiversity-rewilding', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'chemistry', channel_type: Community.channel_types[:newsmast] }
+      ]
+
+      DEFAULT_BRAZILIAN_MUSEUM_CHANNELS = [
+        { slug: 'museums', channel_type: Community.channel_types[:channel_feed]},
+        { slug: 'history', channel_type: Community.channel_types[:newsmast] },
+        { slug: 'performing-arts', channel_type: Community.channel_types[:newsmast] }
+      ]
 
       def recommend_channels
         @recommended_channels = Community.recommended.exclude_array_ids
@@ -107,6 +192,75 @@ module Api
         render_custom_channels(DEFAULT_PATCHWORK_DEMO_CHANNELS)
       end
 
+      def toot_channels
+        render_custom_channels(DEFAULT_TOOT_CHANNELS)
+      end
+
+      def bristol_cable_channels
+        render_custom_channels(DEFAULT_BRISTOL_CABLE_CHANNELS)
+      end
+
+      def find_out_channels
+        render_custom_channels(DEFAULT_FIND_OUT_CHANNELS)
+      end
+
+      def find_out_catch_up
+        render_custom_channels(DEFAULT_FIND_OUT_CATCH_UP)
+      end
+
+      def find_out_speak_out
+        render_custom_channels(DEFAULT_FIND_OUT_SPEAK_OUT)
+      end
+
+      def leicester_channels
+        render_custom_channels(DEFAULT_LEICESTER_CHANNELS)
+      end
+
+      def csidnet_channels
+        render_custom_channels(DEFAULT_CSIDNET_CHANNELS)
+      end
+
+      def brazilian_museum_channels
+        render_custom_channels(DEFAULT_BRAZILIAN_MUSEUM_CHANNELS)
+      end
+
+      def starter_packs_channels
+        starter_packs_channels = load_json_data(starter_pack_data_path('starter_pack_list.json'))
+
+        render json: { data: starter_packs_channels }
+      end
+
+      def starter_packs_detail
+        channel_id = params[:id]
+        starter_packs_channels = load_json_data(starter_pack_data_path('starter_pack_list.json'))
+        channel = starter_packs_channels.find { |ch| ch["id"] == channel_id }
+
+        unless channel
+          render json: { error: "Channel not found" }, status: :not_found and return
+        end
+
+        followers_file = starter_pack_data_path("starter_pack_#{channel_id}.json")
+        followers = load_json_data(followers_file)
+
+        render json: {
+          channel: channel,
+          followers: followers
+        }
+      end
+
+      
+
+      def change_boost_bot_profile
+        if @channel.nil? || !@channel.boost_bot?
+          return render_errors('api.community.errors.not_found', :not_found)
+        end
+        @channel.update!(boost_bot_profile_params)
+        render_updated(
+          {},
+          'api.messages.updated'
+        )
+      end
+
       private
 
       def set_channel
@@ -158,6 +312,68 @@ module Api
         render json: Api::V1::ChannelSerializer.new(sorted_communities, { params: { current_account: account } }).serializable_hash.to_json
       end
 
+      def load_json_data(filename)
+        file_path = Rails.root.join('config', 'data', filename)
+        return [] unless File.exist?(file_path)
+
+        # Derive cache key from filename (remove extension)
+        cache_key = filename.gsub('/', '_').gsub('.json', '')
+        modified_at = File.mtime(file_path).to_i
+        full_cache_key = "starter_pack_#{cache_key}_#{modified_at}"
+
+        Rails.cache.fetch(full_cache_key, expires_in: 1.hour) do
+          JSON.parse(File.read(file_path))
+        end
+      end
+
+      def starter_pack_data_path(filename)
+        File.join(starter_pack_namespace, filename)
+      end
+
+      def starter_pack_namespace
+        source = params[:starter_pack_source]
+        normalized_source = source.present? ? source.to_s.parameterize(separator: '') : nil
+
+        case normalized_source
+        when 'thebristolcable'
+          'thebristolcable'
+        when 'twt'
+          'twt'
+        when 'findout'
+          'findout'
+        else
+          'twt'
+        end
+      end
+
+      def boost_bot_profile_channel_id
+        params[:id].presence || params[:community_id].presence
+      end
+
+      def boost_bot_profile_params
+        source_params = params[:channel].is_a?(ActionController::Parameters) ? params[:channel] : params
+
+        update_params = {
+          name: source_params[:name],
+          description: source_params[:description]
+        }
+
+        if !source_params.key?(:avatar) && source_params[:avatar].nil?
+          @channel.avatar_image = nil
+          @channel.avatar_image_file_name = nil
+        else
+          update_params[:avatar_image] = source_params[:avatar]
+        end
+
+        if !source_params.key?(:banner) && source_params[:banner].nil?
+          @channel.banner_image = nil
+          @channel.banner_image_file_name = nil
+        else
+          update_params[:banner_image] = source_params[:banner]
+        end
+
+        update_params.compact
+      end
     end
   end
 end

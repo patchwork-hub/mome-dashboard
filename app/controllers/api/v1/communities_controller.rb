@@ -3,13 +3,13 @@ module Api
     class CommunitiesController < ApiController
       include ApiResponseHelper
       include BlueskyAccountBridgeHelper
-      
+
       skip_before_action :verify_key!
       before_action :check_authorization_header
       before_action :set_community, only: %i[show update set_visibility manage_additional_information remove_avatar remove_banner]
       before_action :validate_patchwork_community_id, only: %i[contributor_list mute_contributor_list hashtag_list]
       before_action :set_content_and_channel_type, only: %i[index create update]
-      
+
       PER_PAGE = 5
 
       def index
@@ -91,6 +91,46 @@ module Api
       def hashtag_list
         hashtags = load_commu_hashtag_records
         render_hashtags(hashtags)
+      end
+
+      def post_hashtag_list
+        communities = Community.where(channel_type: ['newsmast', 'channel_feed'])
+                               .where(deleted_at: nil)
+
+        if params[:channel_type].present?
+          communities = communities.where(channel_type: params[:channel_type])
+        end
+
+        if params[:channel_name].present?
+          channel_names = Array.wrap(params[:channel_name])
+          communities = communities.where(name: channel_names)
+        end
+
+        post_hashtags = PostHashtag.includes(:community)
+                                   .where(patchwork_community_id: communities.pluck(:id))
+                                   .order(created_at: :desc)
+                                   .page(params[:page])
+                                   .per(params[:per_page] || PER_PAGE)
+
+        grouped_data = post_hashtags.group_by { |ph| ph.community&.name }.map do |community_name, hashtags|
+          {
+            community_name: community_name,
+            patchwork_community_id: hashtags.first.patchwork_community_id,
+            hashtags: hashtags.map do |ph|
+              {
+                id: ph.id,
+                hashtag: ph.hashtag,
+                created_at: ph.created_at,
+                updated_at: ph.updated_at
+              }
+            end
+          }
+        end
+
+        render json: {
+          data: grouped_data,
+          meta: pagination_meta(post_hashtags)
+        }, status: :ok
       end
 
       def mute_contributor_list
@@ -175,6 +215,7 @@ module Api
          :avatar_image,
          :community_type_id,
          :is_recommended,
+         :no_boost_channel,
          :is_custom_domain,
          :ip_address_id
         ).to_h

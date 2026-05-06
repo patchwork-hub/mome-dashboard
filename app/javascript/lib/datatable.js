@@ -295,6 +295,21 @@ jQuery(function() {
     form.attr('action', actionUrl);
   });
 
+  $('#editPostHashtagModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var hashtagId = button.data('id');
+    var hashtag = button.data('hashtag');
+
+    var modal = $(this);
+    modal.find('#edit_post_hashtag_id').val(hashtagId);
+    modal.find('#edit_post_hashtag_input').val('#' + hashtag);
+
+    var form = modal.find('#edit_post_hashtag_form');
+    var communityId = $('#edit_post_hashtag_community_id').val();
+    var actionUrl = '/channels/' + communityId + '/post_hashtags/' + hashtagId;
+    form.attr('action', actionUrl);
+  });
+
   const saveAndPreviewBtn = document.getElementById("save-and-preview-btn");
   const form = document.getElementById("additionalForm");
 
@@ -421,7 +436,20 @@ jQuery(function() {
           });
 
           cropButton.addEventListener("click", () => {
-            const canvas = cropper.getCroppedCanvas();
+            const maxWidth = 1080;
+            const maxHeight = Math.round(maxWidth / aspectRatio);
+            const canvas = cropper.getCroppedCanvas({
+              maxWidth: maxWidth,
+              maxHeight: maxHeight,
+              imageSmoothingEnabled: true,
+              imageSmoothingQuality: 'high',
+            });
+            const originalType = file.type || "image/png";
+            const mimeType = ["image/jpeg", "image/webp"].includes(originalType) ? originalType : "image/png";
+            const quality = mimeType === "image/png" ? undefined : 0.85;
+            const extension = mimeType === "image/jpeg" ? "jpg" : mimeType === "image/webp" ? "webp" : "png";
+            const fileName = file.name ? file.name.replace(/\.[^/.]+$/, `.${extension}`) : `cropped-image.${extension}`;
+
             canvas.toBlob((blob) => {
               if (previewImg.src.startsWith("blob:")) {
                 URL.revokeObjectURL(previewImg.src);
@@ -431,10 +459,10 @@ jQuery(function() {
               previewImg.style.display = "block";
 
               const dataTransfer = new DataTransfer();
-              dataTransfer.items.add(new File([blob], "cropped-image.png", { type: "image/png" }));
+              dataTransfer.items.add(new File([blob], fileName, { type: mimeType }));
               input.files = dataTransfer.files;
               document.body.removeChild(modal);
-            }, "image/png");
+            }, mimeType, quality);
           });
 
           closeButton.addEventListener("click", () => {
