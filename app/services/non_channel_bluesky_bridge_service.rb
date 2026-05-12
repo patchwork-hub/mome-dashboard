@@ -5,8 +5,10 @@ class NonChannelBlueskyBridgeService
   end
 
   def process_users
-    users = User.where(did_value: nil, bluesky_bridge_enabled: true)
-    return unless users.any?
+    users = User.where(did_value: nil, bluesky_bridge_enabled: true).where.not(
+      confirmed_at: nil).includes(:account).where(
+      accounts: { suspended_at: nil}
+    )
 
     users.each do |user|
       process_user(user)
@@ -84,7 +86,7 @@ class NonChannelBlueskyBridgeService
   end
 
   def process_did_value(user, token, account)
-    did_value = FetchDidValueService.new.call(account, user)
+    did_value = FetchDidValueService.new.call(account, nil)
 
     if did_value
       begin
@@ -123,7 +125,7 @@ class NonChannelBlueskyBridgeService
 
   def create_direct_message(token, account)
     base_domain = ENV['LOCAL_DOMAIN'].split('.').last(2).join('.')
-    name = "#{account&.username}@#{base_domain}"
+    name = "#{account&.username}.#{base_domain}"
 
     status_params = {
       "in_reply_to_id": nil,
