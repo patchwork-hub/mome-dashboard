@@ -17,7 +17,7 @@
 #
 # Indexes
 #
-#  index_patchwork_communities_admins_on_account_id              (account_id)
+#  index_patchwork_communities_admins_on_account_and_community   (account_id,patchwork_community_id) UNIQUE
 #  index_patchwork_communities_admins_on_patchwork_community_id  (patchwork_community_id)
 #  unique_community_admin_index                                  (account_id,patchwork_community_id) UNIQUE
 #
@@ -46,6 +46,9 @@ class CommunityAdmin < ApplicationRecord
   validates :role, inclusion: { in: ROLES, message: "%{value} is not a valid role" }, allow_blank: true
 
   validates :account_id, uniqueness: { scope: :patchwork_community_id, message: "is already an admin for this community" }, allow_blank: true
+
+  validates :password, presence: true, length: { minimum: 8 }, on: :create
+  validates :password, length: { minimum: 8 }, allow_blank: true, on: :update
 
   def self.ransackable_attributes(auth_object = nil)
     ["account_id", "created_at", "id", "id_value", "patchwork_community_id", "updated_at"]

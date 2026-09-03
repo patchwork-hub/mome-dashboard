@@ -1,27 +1,26 @@
 module Api
   module V1
-		class AppVersionsController < ApiController
-			skip_before_action :verify_key!
-			before_action :authenticate_client_credentials, only: [:check_version]
-			before_action :set_app_version, only: %i[check_version]
+    class AppVersionsController < ApiController
+      skip_before_action :verify_key!
+      before_action :authenticate_client_credentials, only: [:check_version]
+      before_action :set_app_version, only: %i[check_version]
 
-			def check_version
+      def check_version
+        unless app_version_params[:os_type].present?
+          return render_errors('api.validation.required', :bad_request, { attribute: 'OS type' })
+        end
 
-				unless app_version_params[:os_type].present?
-					return render_errors('api.validation.required', :bad_request, { attribute: 'OS type' })
-				end
+        return render_errors('api.errors.not_found', :not_found) unless @app_version
 
-				return render_errors('api.errors.not_found', :not_found) unless @app_version
+        app_version_history = fetch_version_history
+        if app_version_history.present?
+          render_success(app_version_history, 'api.messages.success', :ok)
+        else
+          render_errors('api.errors.not_found', :not_found)
+        end
+      end
 
-				app_version_history = fetch_version_history
-				if app_version_history.present?
-					render_success(app_version_history, 'api.messages.success', :ok)
-				else
-					render_errors('api.errors.not_found', :not_found)
-				end
-			end
-
-			private
+      private
 
 			def set_app_version
 				key = app_version_params[:app_name]&.to_sym || :mo_me
