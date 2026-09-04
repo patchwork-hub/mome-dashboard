@@ -7,7 +7,7 @@ if ENV['OTEL_EXPORTER_OTLP_ENDPOINT'].present?
   require 'opentelemetry-instrumentation-rails'
   require 'opentelemetry-instrumentation-active_job'
   require 'opentelemetry-instrumentation-sidekiq'
-#   require 'opentelemetry-instrumentation-pg'  # Disabled to prevent recursion
+  # require 'opentelemetry-instrumentation-pg'  # Disabled to prevent recursion
   require 'opentelemetry-instrumentation-faraday'
   require 'opentelemetry-instrumentation-redis'
   require 'opentelemetry-instrumentation-concurrent_ruby'
