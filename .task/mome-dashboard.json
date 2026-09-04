@@ -1,5 +1,4 @@
 {
-<<<<<<<< HEAD:.task/mome-dashboard.json
     "taskDefinitionArn": "arn:aws:ecs:eu-west-2:672691776916:task-definition/mome-dashboard:1",
     "containerDefinitions": [
         {
@@ -9,17 +8,6 @@
             "portMappings": [
                 {
                     "name": "mome-dashboard-3000-tcp",
-========
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:672691776916:task-definition/csidnet-dashboard:10",
-    "containerDefinitions": [
-        {
-            "name": "csidnet-dashboard",
-            "image": "672691776916.dkr.ecr.eu-west-2.amazonaws.com/internal-dashboard-staging:staging",
-            "cpu": 0,
-            "portMappings": [
-                {
-                    "name": "csidnet-dashboard-3000-tcp",
->>>>>>>> upstream/database-temp1:.task/internal-csidnet-staging.json
                     "containerPort": 3000,
                     "hostPort": 3000,
                     "protocol": "tcp",
@@ -30,11 +18,7 @@
             "environment": [],
             "environmentFiles": [
                 {
-<<<<<<<< HEAD:.task/mome-dashboard.json
                     "value": "arn:aws:s3:::patchwork-private-env/mome-dashboard.env",
-========
-                    "value": "arn:aws:s3:::patchwork-private-env/csidnet-dashboard.env",
->>>>>>>> upstream/database-temp1:.task/internal-csidnet-staging.json
                     "type": "s3"
                 }
             ],
@@ -44,32 +28,21 @@
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
-<<<<<<<< HEAD:.task/mome-dashboard.json
                     "awslogs-group": "/ecs/mome-dashboard",
-========
-                    "awslogs-group": "/ecs/csidnet-dashboard",
->>>>>>>> upstream/database-temp1:.task/internal-csidnet-staging.json
                     "awslogs-create-group": "true",
                     "awslogs-region": "eu-west-2",
                     "awslogs-stream-prefix": "ecs"
-                }
+                },
+                "secretOptions": []
             },
             "systemControls": []
         }
     ],
-<<<<<<<< HEAD:.task/mome-dashboard.json
     "family": "mome-dashboard",
     "taskRoleArn": "arn:aws:iam::672691776916:role/patchwork-ecs-task-role",
     "executionRoleArn": "arn:aws:iam::672691776916:role/patchwork-ecs-task-execution-role",
     "networkMode": "awsvpc",
     "revision": 1,
-========
-    "family": "csidnet-dashboard",
-    "taskRoleArn": "arn:aws:iam::672691776916:role/patchwork-ecs-task-role",
-    "executionRoleArn": "arn:aws:iam::672691776916:role/patchwork-ecs-task-execution-role",
-    "networkMode": "awsvpc",
-    "revision": 10,
->>>>>>>> upstream/database-temp1:.task/internal-csidnet-staging.json
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -107,8 +80,7 @@
     "placementConstraints": [],
     "compatibilities": [
         "EC2",
-        "FARGATE",
-        "MANAGED_INSTANCES"
+        "FARGATE"
     ],
     "requiresCompatibilities": [
         "FARGATE"
@@ -119,11 +91,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-<<<<<<<< HEAD:.task/mome-dashboard.json
     "registeredAt": "2025-07-22T13:06:00.395Z",
-========
-    "registeredAt": "2026-03-31T04:35:45.033Z",
->>>>>>>> upstream/database-temp1:.task/internal-csidnet-staging.json
     "registeredBy": "arn:aws:iam::672691776916:user/ahn",
     "enableFaultInjection": false,
     "tags": []
