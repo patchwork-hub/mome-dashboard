@@ -2,8 +2,12 @@ require 'sidekiq/web'
 require 'sidekiq-scheduler'
 
 Rails.application.routes.draw do
-  authenticate :user, lambda { |u| u.master_admin? } do
+  authenticate :user, lambda { |u| u.master_admin? || u.can?(:manage_sidekiq) } do
     mount Sidekiq::Web, at: 'sidekiq', as: :sidekiq
+  end
+
+  authenticate :user, lambda { |u| u.master_admin? } do
+    mount PgHero::Engine, at: 'pghero', as: :pghero
   end
 
   root 'server_settings#index'
@@ -97,11 +101,14 @@ Rails.application.routes.draw do
 
   resources :community_admins, except: [:show, :index]
 
+  resources :roles, except: [:show]
   resources :master_admins, except: [:show, :destroy]
 
   resources :wait_lists
 
   resources :app_versions
+
+  get '/monitoring/benchmark', to: 'monitoring#benchmark'
 
   resources :custom_emojis
   patch "history/:id/deprecate", to: 'app_versions#deprecate'

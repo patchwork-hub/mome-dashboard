@@ -1,17 +1,20 @@
 class AppVersionsController < ApplicationController
-  before_action :authorize_master_admin!
+  before_action :authenticate_user!
+  before_action :authorize_app_version!
   before_action :set_app_version, only: %i[update destroy]
-  
+
   PER_PAGE = 10
 
   def index
-    app_name_key = params[:app_name]&.to_s
-    scope = if AppVersion.app_names.value?(app_name_key&.to_i)
-      AppVersion.send(AppVersion.app_names.key(app_name_key.to_i)).ransack(params[:q])
-    else
-      AppVersion.patchwork.ransack(params[:q])
+    with_read_replica do
+      app_name_key = params[:app_name]&.to_s
+      scope = if AppVersion.app_names.value?(app_name_key&.to_i)
+        AppVersion.send(AppVersion.app_names.key(app_name_key.to_i)).ransack(params[:q])
+      else
+        AppVersion.patchwork.ransack(params[:q])
+      end
+      @app_versions = scope.result.includes(:app_version_histories).order(created_at: :asc).page(params[:page]).per(PER_PAGE)
     end
-    @app_versions = scope.result.includes(:app_version_histories).order(created_at: :asc).page(params[:page]).per(PER_PAGE)
   end
 
   def new
@@ -56,11 +59,11 @@ class AppVersionsController < ApplicationController
     render json: {message: 'success'}, status: 200
   end
 
-  def authorize_master_admin!
-    authorize :master_admin, :index?
-  end
-
   private
+
+  def authorize_app_version!
+    authorize :app_version, "#{action_name}?"
+  end
 
   def set_app_version
     @app_version = AppVersion.find(params[:id])

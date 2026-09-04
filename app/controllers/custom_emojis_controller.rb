@@ -1,9 +1,12 @@
 class CustomEmojisController < ApplicationController
+  before_action :authorize_custom_emojis!
   before_action :set_custom_emoji, only: [:edit, :update, :destroy]
   
   def index
-    @records = filtered_custom_emojis.eager_load(:local_counterpart, :category).page(params[:page])
-    @form          = Form::CustomEmojiBatch.new
+    with_read_replica do
+      @records = filtered_custom_emojis.eager_load(:local_counterpart, :category).page(params[:page])
+      @form    = Form::CustomEmojiBatch.new
+    end
   end
 
   def new
@@ -51,7 +54,6 @@ class CustomEmojisController < ApplicationController
   end
 
   def batch
-
     @form = Form::CustomEmojiBatch.new(form_custom_emoji_batch_params.merge(current_account: current_account, action: action_from_button))
     @form.save
   rescue ActionController::ParameterMissing
@@ -106,4 +108,7 @@ class CustomEmojisController < ApplicationController
     @custom_emoji = CustomEmoji.find(params[:id])
   end
 
+  def authorize_custom_emojis!
+    authorize :custom_emoji, "#{action_name}?"
+  end
 end

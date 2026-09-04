@@ -1,11 +1,13 @@
 class CollectionsController < ApplicationController
-  before_action :authorize_master_admin!
+  before_action :authorize_collection!
   before_action :set_collection, only: %i[show edit update]
   PER_PAGE = 10
 
   def index
-    @search = Collection.ransack(params[:q])
-    @records = @search.result.order(:sorting_index).page(params[:page]).per(PER_PAGE)
+    with_read_replica do
+      @search = Collection.ransack(params[:q])
+      @records = @search.result.order(:sorting_index).page(params[:page]).per(PER_PAGE).load
+    end
   end
 
   def show
@@ -16,11 +18,13 @@ class CollectionsController < ApplicationController
   end
 
   def create
-    @collection = Collection.new(collection_params)
-    if @collection.save
-      redirect_to collections_path, notice: 'Collection was successfully created.'
-    else
-      render :new
+    with_primary do
+      @collection = Collection.new(collection_params)
+      if @collection.save
+        redirect_to collections_path, notice: 'Collection was successfully created.'
+      else
+        render :new
+      end
     end
   end
 
@@ -28,10 +32,12 @@ class CollectionsController < ApplicationController
   end
 
   def update
-    if @collection.update(collection_params)
-      redirect_to collections_path, notice: 'Collection was successfully updated.'
-    else
-      render :edit
+    with_primary do
+      if @collection.update(collection_params)
+        redirect_to collections_path, notice: 'Collection was successfully updated.'
+      else
+        render :edit
+      end
     end
   end
 
@@ -45,7 +51,7 @@ class CollectionsController < ApplicationController
     params.require(:collection).permit(:name, :slug, :sorting_index, :banner_image, :avatar_image)
   end
 
-  def authorize_master_admin!
-    authorize :master_admin, :index?
+  def authorize_collection!
+    authorize :collection, "#{action_name}?"
   end
 end
