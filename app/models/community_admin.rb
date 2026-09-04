@@ -17,13 +17,12 @@
 #
 # Indexes
 #
-#  index_patchwork_communities_admins_on_account_and_community   (account_id,patchwork_community_id) UNIQUE
 #  index_patchwork_communities_admins_on_patchwork_community_id  (patchwork_community_id)
 #  unique_community_admin_index                                  (account_id,patchwork_community_id) UNIQUE
 #
 # Foreign Keys
 #
-#  fk_rails_...  (account_id => accounts.id)
+#  fk_rails_...  (account_id => accounts.id) ON DELETE => cascade
 #  fk_rails_...  (patchwork_community_id => patchwork_communities.id)
 #
 class CommunityAdmin < ApplicationRecord
