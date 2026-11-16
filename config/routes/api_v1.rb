@@ -24,6 +24,10 @@ namespace :api, defaults: { format: :json } do
           { display: false, app_name: 'leicester' }
         when 'findout'
           { display: false, app_name: 'findout' }
+        when 'ibram-museus'
+          { display: true, app_name: 'ibram-museus' }
+        when 'jacobin'
+          { display: true, app_name: 'jacobin' }
         else
           { display: true, app_name: app_name }
         end
@@ -80,6 +84,7 @@ namespace :api, defaults: { format: :json } do
         get :fetch_channels
         get :newsmast_collections
         get :channel_feed_collections
+        get :fetch_channels_demobookclub # Temporary method to fetch channels for the Demo Book Club collection - Might be removed in the future
       end
     end
 

@@ -19,7 +19,7 @@ class Filter::Community < Filter::Common
                    Community.all
                  else
                    Community.joins(:community_admins)
-                            .where(community_admins: { account_id: account_id })
+                            .where(community_admins: { account_id: account_id, account_status: :active })
 
                  end
 
@@ -27,7 +27,10 @@ class Filter::Community < Filter::Common
   end
 
   def master_admin?
-    @current_user&.role&.name.in?(%w[MasterAdmin])
+    return true if @current_user&.master_admin?
+    return false if @current_user&.community_admin?
+
+    @current_user&.can?(:manage_channels, :manage_channel_feeds, :manage_hubs, :manage_newsmast_channels)
   end
 
   def account_id

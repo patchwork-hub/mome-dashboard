@@ -2,7 +2,7 @@ require 'sidekiq/web'
 require 'sidekiq-scheduler'
 
 Rails.application.routes.draw do
-  authenticate :user, lambda { |u| u.master_admin? } do
+  authenticate :user, lambda { |u| u.master_admin? || u.can?(:manage_sidekiq) } do
     mount Sidekiq::Web, at: 'sidekiq', as: :sidekiq
   end
 
@@ -35,6 +35,9 @@ Rails.application.routes.draw do
       post 'unmute_contributor', to: 'communities#unmute_contributor'
       post 'set_visibility', to: 'communities#set_visibility'
       post 'manage_additional_information', to: 'communities#manage_additional_information'
+      get 'search_local_accounts', to: 'communities#search_local_accounts'
+      post 'assign_role', to: 'communities#assign_role'
+      post 'remove_assigned_role', to: 'communities#remove_assigned_role'
       get 'follower_list', to: 'communities#follower_list'
       get 'follower_list_csv', to: 'communities#follower_list_csv'
       post 'recover', to: 'communities#recover'
@@ -93,10 +96,36 @@ Rails.application.routes.draw do
 
   resources :collections
 
+  resources :starter_packs do
+    collection do
+      get :search_accounts
+      get :next_position
+      patch :reorder
+    end
+    member do
+      post :add_account
+      delete :remove_account
+      patch :reorder_accounts
+    end
+  end
+
+  resources :auto_follows do
+    collection do
+      get :search_accounts
+    end
+    member do
+      post :add_account
+      delete :remove_account
+      patch :reorder_accounts
+      patch :toggle_enabled
+    end
+  end
+
   resources :content_types, only: [:create]
 
   resources :community_admins, except: [:show, :index]
 
+  resources :roles, except: [:show]
   resources :master_admins, except: [:show, :destroy]
 
   resources :wait_lists

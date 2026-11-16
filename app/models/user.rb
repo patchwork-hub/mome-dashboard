@@ -72,8 +72,23 @@ class User < ApplicationRecord
 
   validates :email, uniqueness: true, presence: true
 
+  delegate :can?, to: :role
+
+  # Returns the user's role, falling back to the "everyone" role when role_id is nil
+  def role
+    if role_id.nil?
+      UserRole.everyone
+    else
+      super
+    end
+  end
+
   def master_admin?
-    role.name == 'MasterAdmin'
+    role.can?(:administrator)
+  end
+
+  def dashboard_admin?
+    role.name == 'DashboardAdmin'
   end
 
   def organisation_admin?
@@ -90,6 +105,10 @@ class User < ApplicationRecord
 
   def newsmast_admin?
     role.name == "NewsmastAdmin"
+  end
+
+  def community_admin?
+    CommunityAdmin.exists?(account_id: account_id, account_status: :active)
   end
 
   def primary_community

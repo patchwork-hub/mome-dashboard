@@ -12,13 +12,9 @@ class Users::SessionsController < Devise::SessionsController
   def create
     self.resource = warden.authenticate!(auth_options)
 
-    unless resource.master_admin?
-      community_admin = find_active_community_admin(resource)
-
-      if community_admin.nil?
-        handle_unauthorized_login
-        return
-      end
+    unless policy(resource).login?
+      handle_unauthorized_login
+      return
     end
 
     super do |resource|
@@ -41,16 +37,31 @@ class Users::SessionsController < Devise::SessionsController
   protected
 
   def after_sign_in_path_for(resource)
-    if resource.master_admin?
-      root_path
-    elsif resource.organisation_admin?
-      communities_path(channel_type: 'channel')
-    elsif resource.user_admin?
-      communities_path(channel_type: 'channel_feed')
-    elsif resource.hub_admin?
-      communities_path(channel_type: 'hub')
-    else
-      communities_path(channel_type: 'newsmast')
+    begin
+      menu_items = view_context.sidebar_menu_items.flat_map { |group| group[:items] }
+      first_local_item = menu_items.find { |item| item[:path].to_s.start_with?('/') && item[:target] != '_blank' }
+      if first_local_item
+        first_local_item[:path]
+      else
+        root_path
+      end
+    rescue => e
+      Rails.logger.error "Error resolving dynamic post-login path: #{e.message}"
+      if resource.master_admin?
+        root_path
+      elsif resource.can?(:view_newsmast_dashboard)
+        communities_path(channel_type: 'newsmast')
+      elsif resource.dashboard_admin?
+        communities_path(channel_type: 'channel')
+      elsif resource.organisation_admin?
+        communities_path(channel_type: 'channel')
+      elsif resource.user_admin?
+        communities_path(channel_type: 'channel_feed')
+      elsif resource.hub_admin?
+        communities_path(channel_type: 'hub')
+      else
+        communities_path(channel_type: 'newsmast')
+      end
     end
   end
 
@@ -73,21 +84,6 @@ class Users::SessionsController < Devise::SessionsController
       )
     rescue HTTParty::Error => e
       Rails.logger.error "Failed to revoke access token: #{e.message}"
-    end
-  end
-
-  def find_active_community_admin(user)
-    if user.organisation_admin?
-      CommunityAdmin.find_by(
-        account_id: user.account_id,
-        account_status: CommunityAdmin.account_statuses[:active]
-      )
-    else
-      CommunityAdmin.find_by(
-        account_id: user.account_id,
-        is_boost_bot: true,
-        account_status: CommunityAdmin.account_statuses[:active]
-      )
     end
   end
 

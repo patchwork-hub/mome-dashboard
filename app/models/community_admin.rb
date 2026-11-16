@@ -23,7 +23,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (account_id => accounts.id)
+#  fk_rails_...  (account_id => accounts.id) ON DELETE => cascade
 #  fk_rails_...  (patchwork_community_id => patchwork_communities.id)
 #
 class CommunityAdmin < ApplicationRecord
@@ -41,11 +41,14 @@ class CommunityAdmin < ApplicationRecord
     message: "is already taken"
   }
 
-  ROLES = %w[OrganisationAdmin UserAdmin HubAdmin NewsmastAdmin].freeze
+  ROLES = %w[OrganisationAdmin UserAdmin HubAdmin NewsmastAdmin GroupAdmin GroupModerator GroupMember].freeze
 
   validates :role, inclusion: { in: ROLES, message: "%{value} is not a valid role" }, allow_blank: true
 
   validates :account_id, uniqueness: { scope: :patchwork_community_id, message: "is already an admin for this community" }, allow_blank: true
+
+  validates :password, presence: true, length: { minimum: 8 }, on: :create
+  validates :password, length: { minimum: 8 }, allow_blank: true, on: :update
 
   def self.ransackable_attributes(auth_object = nil)
     ["account_id", "created_at", "id", "id_value", "patchwork_community_id", "updated_at"]

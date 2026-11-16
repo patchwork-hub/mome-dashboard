@@ -13,7 +13,7 @@
           .row
             .col
               = simple_form_for [@community, @community_post_type], url: community_community_post_type_path(@community), remote: true, html: { id: 'community_post_type_form' } do |f|
-                = hidden_field_tag :continue, "true", id: "continue_field" if @community.channel?
+                = hidden_field_tag :continue, "true", id: "continue_field" if @community.channel? || @community.channel_feed?
                 %label Type of posts
                 %p.text-muted.small Select which types of content are <strong>included</strong> in this channel.
 
@@ -63,7 +63,8 @@
                       = render_custom_emojis(account.display_name)
                       - domain = account&.domain.present? ? "https://#{account.domain}" : ENV.fetch('MASTODON_INSTANCE_URL', nil)
                       %br
-                      %a{ href: "#{account.url}", target: "_blank" }= "@#{account.username}@#{account.domain || 'channel.org'}"
+                      - local_domain = URI.parse(ENV.fetch('MASTODON_INSTANCE_URL', '')).host rescue nil
+                      %a{ href: "#{account.url}", target: "_blank" }= "@#{account.username}@#{account.domain || local_domain}"
                     %td{style: "width: 60px;"}
                       = form_with url: unmute_contributor_community_path, method: :post, remote: true, authenticity_token: true do |form|
                         = form.hidden_field :account_id, value: account.id
@@ -111,7 +112,7 @@
       .row.d-flex.justify-content-between
         .col
           %a.btn.btn-outline-secondary{ href: step3_community_path } Back
-        - if @community.channel_feed? || @community.newsmast?
+        - if @community.newsmast?
           .col-auto
             = button_tag 'Save & Preview', type: 'submit', form: 'community_post_type_form', class: 'btn btn-block btn-danger', data: { toggle: 'modal', target: '#previewCommunityModal' }
         - else
