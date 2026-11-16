@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_21_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -198,8 +198,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
     t.datetime "requested_review_at", precision: nil
     t.boolean "indexable", default: false, null: false
     t.string "attribution_domains", default: [], array: true
-    t.boolean "is_banned", default: false
     t.string "devices_url"
+    t.boolean "is_banned", default: false
     t.string "following_url", default: "", null: false
     t.integer "id_scheme", default: 1
     t.integer "feature_approval_policy", default: 0, null: false
@@ -964,6 +964,25 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
     t.index ["version_name", "app_name"], name: "index_patchwork_app_versions_on_version_name_and_app_name", unique: true
   end
 
+  create_table "patchwork_auto_follow_accounts", force: :cascade do |t|
+    t.bigint "patchwork_auto_follow_id", null: false
+    t.bigint "account_id", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_patchwork_auto_follow_accounts_on_account_id"
+    t.index ["patchwork_auto_follow_id", "account_id"], name: "index_auto_follow_accounts_unique", unique: true
+  end
+
+  create_table "patchwork_auto_follows", force: :cascade do |t|
+    t.string "title", null: false
+    t.string "instance_name", null: false
+    t.boolean "enabled", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["instance_name"], name: "index_patchwork_auto_follows_on_instance_name", unique: true
+  end
+
   create_table "patchwork_collections", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -1166,9 +1185,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
     t.bigint "account_id", null: false
     t.string "notification_token"
     t.string "platform_type"
-    t.boolean "mute", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "mute", default: false, null: false
     t.index ["account_id"], name: "index_patchwork_notification_tokens_on_account_id"
   end
 
@@ -1179,6 +1198,29 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_patchwork_settings_on_account_id"
+  end
+
+  create_table "patchwork_starter_pack_accounts", force: :cascade do |t|
+    t.bigint "patchwork_starter_pack_id", null: false
+    t.bigint "account_id", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_patchwork_starter_pack_accounts_on_account_id"
+    t.index ["patchwork_starter_pack_id", "account_id"], name: "index_starter_pack_accounts_unique", unique: true
+  end
+
+  create_table "patchwork_starter_packs", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description"
+    t.string "instance_name", null: false
+    t.bigint "created_by_id"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "total_accounts", default: 0, null: false
+    t.index ["created_by_id"], name: "index_patchwork_starter_packs_on_created_by_id"
+    t.unique_constraint ["instance_name", "position"], deferrable: :deferred, name: "unique_starter_pack_instance_position"
   end
 
   create_table "patchwork_status_reactions", force: :cascade do |t|
@@ -1554,16 +1596,17 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
     t.datetime "edited_at", precision: nil
     t.boolean "trendable"
     t.bigint "ordered_media_attachment_ids", array: true
-    t.datetime "fetched_replies_at"
-    t.integer "quote_approval_policy", default: 0, null: false
     t.boolean "is_banned", default: false
+    t.bigint "quote_id"
+    t.integer "quote_approval_policy", default: 0, null: false
     t.boolean "local_only", default: false
+    t.datetime "fetched_replies_at"
     t.index ["account_id", "id", "visibility", "updated_at"], name: "index_statuses_20190820", order: { id: :desc }, where: "(deleted_at IS NULL)"
     t.index ["account_id"], name: "index_statuses_on_account_id"
     t.index ["conversation_id"], name: "index_statuses_on_conversation_id"
     t.index ["deleted_at"], name: "index_statuses_on_deleted_at", where: "(deleted_at IS NOT NULL)"
     t.index ["id", "account_id"], name: "index_statuses_local_20190824", order: { id: :desc }, where: "((local OR (uri IS NULL)) AND (deleted_at IS NULL) AND (visibility = 0) AND (reblog_of_id IS NULL) AND ((NOT reply) OR (in_reply_to_account_id = account_id)))"
-    t.index ["id", "language", "account_id"], name: "index_statuses_public_20250129", order: { id: :desc }, where: "((deleted_at IS NULL) AND (visibility = 0) AND (reblog_of_id IS NULL) AND ((NOT reply) OR (in_reply_to_account_id = account_id)))"
+    t.index ["id", "account_id"], name: "index_statuses_public_20200119", order: { id: :desc }, where: "((deleted_at IS NULL) AND (visibility = 0) AND (reblog_of_id IS NULL) AND ((NOT reply) OR (in_reply_to_account_id = account_id)))"
     t.index ["in_reply_to_account_id"], name: "index_statuses_on_in_reply_to_account_id", where: "(in_reply_to_account_id IS NOT NULL)"
     t.index ["in_reply_to_id"], name: "index_statuses_on_in_reply_to_id", where: "(in_reply_to_id IS NOT NULL)"
     t.index ["reblog_of_id", "account_id"], name: "index_statuses_on_reblog_of_id_and_account_id"
@@ -1630,8 +1673,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
     t.datetime "notification_sent_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.date "effective_date"
-    t.index ["effective_date"], name: "index_terms_of_services_on_effective_date", unique: true, where: "(effective_date IS NOT NULL)"
+    t.date "effective_date", null: false
   end
 
   create_table "tombstones", force: :cascade do |t|
@@ -1719,8 +1761,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
     t.datetime "age_verified_at"
     t.string "did_value"
     t.boolean "bluesky_bridge_enabled", default: false, null: false
-    t.boolean "alttext_enabled", default: false, null: false
     t.boolean "require_tos_interstitial", default: false, null: false
+    t.boolean "alttext_enabled", default: false, null: false
     t.index ["account_id"], name: "index_users_on_account_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["created_by_application_id"], name: "index_users_on_created_by_application_id", where: "(created_by_application_id IS NOT NULL)"
@@ -1737,8 +1779,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
     t.json "data"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.bigint "access_token_id", null: false
-    t.bigint "user_id", null: false
+    t.bigint "access_token_id"
+    t.bigint "user_id"
     t.boolean "standard", default: false, null: false
     t.index ["access_token_id"], name: "index_web_push_subscriptions_on_access_token_id", where: "(access_token_id IS NOT NULL)"
     t.index ["user_id"], name: "index_web_push_subscriptions_on_user_id"
@@ -1881,6 +1923,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
   add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id", name: "fk_e84df68546", on_delete: :cascade
   add_foreign_key "oauth_applications", "users", column: "owner_id", name: "fk_b0988c7c0a", on_delete: :cascade
   add_foreign_key "patchwork_app_version_histories", "patchwork_app_versions", column: "app_version_id"
+  add_foreign_key "patchwork_auto_follow_accounts", "accounts", on_delete: :cascade
+  add_foreign_key "patchwork_auto_follow_accounts", "patchwork_auto_follows", on_delete: :cascade
   add_foreign_key "patchwork_communities", "patchwork_collections"
   add_foreign_key "patchwork_communities_admins", "accounts", on_delete: :cascade
   add_foreign_key "patchwork_communities_admins", "patchwork_communities"
@@ -1901,6 +1945,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
   add_foreign_key "patchwork_joined_communities", "patchwork_communities", on_delete: :cascade, validate: false
   add_foreign_key "patchwork_notification_tokens", "accounts", on_delete: :cascade
   add_foreign_key "patchwork_settings", "accounts", on_delete: :cascade
+  add_foreign_key "patchwork_starter_pack_accounts", "accounts", on_delete: :cascade
+  add_foreign_key "patchwork_starter_pack_accounts", "patchwork_starter_packs", on_delete: :cascade
+  add_foreign_key "patchwork_starter_packs", "accounts", column: "created_by_id", on_delete: :nullify
   add_foreign_key "patchwork_status_reactions", "accounts", on_delete: :cascade
   add_foreign_key "patchwork_status_reactions", "statuses", on_delete: :cascade
   add_foreign_key "patchwork_wait_lists", "accounts", on_delete: :cascade, validate: false
@@ -1912,10 +1959,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_01_093231) do
   add_foreign_key "preview_card_trends", "preview_cards", on_delete: :cascade
   add_foreign_key "preview_cards", "accounts", column: "author_account_id", on_delete: :nullify
   add_foreign_key "preview_cards", "accounts", column: "unverified_author_account_id", on_delete: :nullify
-  add_foreign_key "quotes", "accounts", column: "quoted_account_id", on_delete: :nullify
-  add_foreign_key "quotes", "accounts", on_delete: :cascade
-  add_foreign_key "quotes", "statuses", column: "quoted_status_id", on_delete: :nullify
-  add_foreign_key "quotes", "statuses", on_delete: :cascade
   add_foreign_key "report_notes", "accounts", on_delete: :cascade
   add_foreign_key "report_notes", "reports", on_delete: :cascade
   add_foreign_key "reports", "accounts", column: "action_taken_by_account_id", name: "fk_bca45b75fd", on_delete: :nullify

@@ -81,6 +81,7 @@ class Account < ApplicationRecord
   NAME_LENGTH_LIMIT = 30
 
   has_one :user, inverse_of: :account
+  has_one :account_stat
 
   before_create :generate_keys
 

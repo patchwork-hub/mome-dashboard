@@ -41,6 +41,9 @@ Rails.application.routes.draw do
       post 'unmute_contributor', to: 'communities#unmute_contributor'
       post 'set_visibility', to: 'communities#set_visibility'
       post 'manage_additional_information', to: 'communities#manage_additional_information'
+      get 'search_local_accounts', to: 'communities#search_local_accounts'
+      post 'assign_role', to: 'communities#assign_role'
+      post 'remove_assigned_role', to: 'communities#remove_assigned_role'
       get 'follower_list', to: 'communities#follower_list'
       get 'follower_list_csv', to: 'communities#follower_list_csv'
       post 'recover', to: 'communities#recover'
@@ -98,6 +101,31 @@ Rails.application.routes.draw do
   draw :api_v1
 
   resources :collections
+
+  resources :starter_packs do
+    collection do
+      get :search_accounts
+      get :next_position
+      patch :reorder
+    end
+    member do
+      post :add_account
+      delete :remove_account
+      patch :reorder_accounts
+    end
+  end
+
+  resources :auto_follows do
+    collection do
+      get :search_accounts
+    end
+    member do
+      post :add_account
+      delete :remove_account
+      patch :reorder_accounts
+      patch :toggle_enabled
+    end
+  end
 
   resources :content_types, only: [:create]
 
