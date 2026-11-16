@@ -23,7 +23,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (account_id => accounts.id)
+#  fk_rails_...  (account_id => accounts.id) ON DELETE => cascade
 #  fk_rails_...  (patchwork_community_id => patchwork_communities.id)
 #
 class CommunityAdmin < ApplicationRecord
@@ -41,7 +41,7 @@ class CommunityAdmin < ApplicationRecord
     message: "is already taken"
   }
 
-  ROLES = %w[OrganisationAdmin UserAdmin HubAdmin NewsmastAdmin].freeze
+  ROLES = %w[OrganisationAdmin UserAdmin HubAdmin NewsmastAdmin GroupAdmin GroupModerator GroupMember].freeze
 
   validates :role, inclusion: { in: ROLES, message: "%{value} is not a valid role" }, allow_blank: true
 
